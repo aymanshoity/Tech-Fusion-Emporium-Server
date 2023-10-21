@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const app=express()
-const port=process.env.PORT || 5000;
+const app = express()
+const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 // middleware
@@ -28,62 +28,86 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const productCollection=client.db('productDB').collection('products')
-    const storedProductCollection=client.db('storedProductDB').collection('storedProducts')
+    const productCollection = client.db('productDB').collection('products')
+    const storedProductCollection = client.db('storedProductDB').collection('storedProducts')
 
-    app.get('/products',async(req,res)=>{
-        const cursor=productCollection.find()
-        const result=await cursor.toArray()
-        res.send(result)
-    })
-    app.get('/products/:brand',async(req,res)=>{
-        const brand=req.params.brand
-        const query={brand: brand}
-        const cursor=productCollection.find(query)
-        const result=await cursor.toArray()
-        res.send(result)
-    })
-    app.get('/products/:brand/:id',async(req,res)=>{
-       const id=req.params.id
-        const query={_id: new ObjectId(id)}
-        const result=await productCollection.findOne(query)
-        res.send(result)
-    }) 
-    app.get('/storedProducts',async(req,res)=>{
-      const cursor=storedProductCollection.find()
-      const result=await cursor.toArray()
+    app.get('/products', async (req, res) => {
+      const cursor = productCollection.find()
+      const result = await cursor.toArray()
       res.send(result)
-    }) 
-
-    app.get('/storedProducts/:id',async(req,res)=>{
-      const id=req.params.id
-       const query={_id: id}
-       const result=await storedProductCollection.findOne(query)
-       res.send(result)
-   }) 
-
-
-    app.post('/products', async(req,res)=>{
-        const newProduct=req.body;
-        console.log(newProduct);
-        const result=await productCollection.insertOne(newProduct);
-        res.send(result)
-
     })
-    app.post('/storedProducts', async(req,res)=>{
-        const newProduct=req.body;
-        console.log(newProduct);
-        const result=await storedProductCollection.insertOne(newProduct);
-        res.send(result)
-
+    app.get('/products/:brand', async (req, res) => {
+      const brand = req.params.brand
+      const query = { brand: brand }
+      const cursor = productCollection.find(query)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+    app.get('/products/:brand/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await productCollection.findOne(query)
+      res.send(result)
+    })
+    app.get('/storedProducts', async (req, res) => {
+      const cursor = storedProductCollection.find()
+      const result = await cursor.toArray()
+      res.send(result)
     })
 
-    app.delete('/storedProducts/:id', async(req,res)=>{
-      const id=req.params.id;
+    app.get('/storedProducts/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: id }
+      const result = await storedProductCollection.findOne(query)
+      res.send(result)
+    })
+
+
+    app.post('/products', async (req, res) => {
+      const newProduct = req.body;
+      console.log(newProduct);
+      const result = await productCollection.insertOne(newProduct);
+      res.send(result)
+
+    })
+    app.post('/storedProducts', async (req, res) => {
+      const newProduct = req.body;
+      console.log(newProduct);
+      const result = await storedProductCollection.insertOne(newProduct);
+      res.send(result)
+
+    })
+
+    app.delete('/storedProducts/:id', async (req, res) => {
+      const id = req.params.id;
       console.log(id)
-      const query={_id: id}
-      const result=await storedProductCollection.deleteOne(query)
+      const query = { _id: id }
+      const result = await storedProductCollection.deleteOne(query)
       res.send(result)
+
+    })
+
+    app.put('/products/:brand/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const existingProduct=req.body;
+
+      const updatedProduct={
+        $set:{
+          brand:existingProduct.brand,
+          name:existingProduct.name,
+          type:existingProduct.type,
+          price:existingProduct.price,
+          ratings:existingProduct.ratings,
+          photo:existingProduct.photo
+
+        }
+      }
+
+      const result=await productCollection.updateOne(filter,updatedProduct,options)
+      res.send(result)
+
 
     })
 
@@ -101,10 +125,10 @@ async function run() {
 run().catch(console.dir);
 
 
-app.get('/',(req,res)=>{
-    res.send('Brand Shop is opening Soon')
+app.get('/', (req, res) => {
+  res.send('Brand Shop is opening Soon')
 })
 
-app.listen(port,()=>{
-    console.log(`Brand Shop is opening on port: ${port}`)
+app.listen(port, () => {
+  console.log(`Brand Shop is opening on port: ${port}`)
 })
